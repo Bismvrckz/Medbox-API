@@ -1,8 +1,8 @@
 {
   "development": {
     "username": "bismarckz",
-    "password": "1234",
-    "database": "medbox",
+    "password": "07mar200412430",
+    "database": "bismarckz",
     "host": "127.0.0.1",
     "dialect": "mysql"
   }
