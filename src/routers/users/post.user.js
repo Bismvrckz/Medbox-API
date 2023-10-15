@@ -1,13 +1,16 @@
-require('../../../config/config.js');
-const express = require('express');
+require("../../../config/config.js");
+const express = require("express");
 const router = express.Router();
-const { isFieldEmpties } = require('../../helpers');
-const { hash, compare } = require('../../lib/bcryptjs');
-const { createToken, verifyToken } = require('../../lib/token');
-const { users } = require('../../../models');
-const { sendMail, sendResetPasswordMail } = require('../../lib/nodemailer');
-const { Op } = require('sequelize');
-const { NUMBER } = require('sequelize');
+const { isFieldEmpties } = require("../../helpers");
+const { hash, compare } = require("../../lib/bcryptjs");
+const { createToken, verifyToken } = require("../../lib/token");
+const { users } = require("../../../models");
+const {
+  sendVerifMail,
+  sendResetPasswordMail,
+} = require("../../lib/nodemailer");
+const { Op } = require("sequelize");
+const { NUMBER } = require("sequelize");
 
 const registerUserController = async (req, res, next) => {
   try {
@@ -32,7 +35,7 @@ const registerUserController = async (req, res, next) => {
       if (checkUser.email == email) {
         throw {
           code: 400,
-          message: 'Email already exist',
+          message: "Email already exist",
         };
       }
     }
@@ -42,7 +45,7 @@ const registerUserController = async (req, res, next) => {
       if (checkedUser.phoneNumber == phoneNumber) {
         throw {
           code: 400,
-          message: 'Phone Number already exist',
+          message: "Phone Number already exist",
         };
       }
     }
@@ -54,7 +57,7 @@ const registerUserController = async (req, res, next) => {
     const newUser = await users.create({
       name: name,
       email: email,
-      avatar: '/public/avatar/default-profile-icon.jpg',
+      avatar: "/public/avatar/default-profile-icon.jpg",
       password: encryptedPassword,
       phoneNumber: `${phoneNumber}`,
     });
@@ -65,11 +68,11 @@ const registerUserController = async (req, res, next) => {
 
     await users.update({ user_token: token }, { where: { user_id: userId } });
 
-    await sendMail({ email, token });
+    await sendVerifMail({ target_email: email, token });
 
     res.send({
-      status: 'success',
-      message: 'succsess create user and send verification',
+      status: "success",
+      message: "succsess create user and send verification",
       data: {
         result: newUser,
       },
@@ -88,7 +91,7 @@ async function sendResetPasswordMailController(req, res, next) {
     sendResetPasswordMail({ email, token });
 
     res.send({
-      status: 'success',
+      status: "success",
       token,
     });
   } catch (error) {
@@ -112,7 +115,7 @@ async function resetPassword(req, res, next) {
     const resUpdatePassword = await user.save();
 
     res.send({
-      status: 'success',
+      status: "success",
       detail: resUpdatePassword,
     });
   } catch (error) {
@@ -144,8 +147,8 @@ const loginUser = async (req, res, next) => {
       });
 
       res.send({
-        status: 'success',
-        message: 'login success',
+        status: "success",
+        message: "login success",
         data: {
           result: {
             user,
@@ -156,8 +159,8 @@ const loginUser = async (req, res, next) => {
     } else {
       throw {
         code: 405,
-        message: 'incorrect email or password',
-        errorType: 'Incorrect Login',
+        message: "incorrect email or password",
+        errorType: "Incorrect Login",
       };
     }
   } catch (error) {
@@ -173,14 +176,14 @@ const resendEmailVerification = async (req, res, next) => {
 
     const updateToken = await users.update(
       { user_token: token },
-      { where: { user_id } },
+      { where: { user_id } }
     );
 
-    await sendMail({ email, token });
+    await sendVerifMail({ email, token });
 
     res.send({
-      status: 'success',
-      message: 'Success Resend Email Verification',
+      status: "success",
+      message: "Success Resend Email Verification",
       data: {
         result: updateToken,
       },
@@ -190,10 +193,10 @@ const resendEmailVerification = async (req, res, next) => {
   }
 };
 
-router.post('/sendResetPasswordMail', sendResetPasswordMailController);
-router.post('/resetPassword/:token', resetPassword);
-router.post('/resendVerif', resendEmailVerification);
-router.post('/register', registerUserController);
-router.post('/login', loginUser);
+router.post("/sendResetPasswordMail", sendResetPasswordMailController);
+router.post("/resetPassword/:token", resetPassword);
+router.post("/resendVerif", resendEmailVerification);
+router.post("/register", registerUserController);
+router.post("/login", loginUser);
 
 module.exports = router;

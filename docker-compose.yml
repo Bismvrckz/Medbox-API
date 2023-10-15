@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: 03IZmt7eRMukIHdoZahl
+      MYSQL_DATABASE: Medbox-1
+      MYSQL_USER: user1
+      MYSQL_PASSWORD: 03IZmt7eRMukIHdoZahl
+    ports:
+      - 3306:3306
+    volumes:
+      - medbox-api-db:/var/lib/mysql/
+      - ./db:/docker-entrypoint-initdb.d
+
+  node:
+    image: node:18.0.0
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/src/medbox-api
+    working_dir: /src/medbox-api
+    command: >
+      sh -c "yarn &&
+      yarn sequelize db:migrate &&
+      yarn sequelize db:seed:undo:all &&
+      yarn sequelize db:seed:all &&
+      yarn sequelize db:seed --seed 20220911165234-categories &&
+      yarn Start-API"
+
+volumes:
+  medbox-api:
+    external: true
+  medbox-api-db:
+    external: true
